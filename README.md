@@ -166,3 +166,47 @@ Product.create!(title: 'Programming Crystal',
   validates :price, numericality: { greater_than_or_equal_to: 0.01 }
 
 ```
+
+- writing to the terminal log, just put a 'puts'
+```
+    respond_to do |format|
+      if @product.save
+        format.html { redirect_to product_url(@product), notice: "Product was successfully created." }
+        format.json { render :show, status: :created, location: @product }
+      else
+        puts @product.errors.full_messages
+```
+
+# CHAPTER 8
+## Task C: Catalog Display
+- rails generate controller Store index
+- update routes
+```
+root 'store#index', as: 'store_index' 
+```
+
+- update store controller
+```
+  def index
+    @products = Product.order(:title)
+  end
+```
+- added the store.scss
+- added the header, logo, navbar
+
+### Iteration C5: Caching of Partial Results
+- depot> bin/rails dev:cache
+- add to the view
+```
+  <% cache @products do %>
+    <% @products.each do |product| %>
+      <% cache product do %>
+```
+- and i add to the store controller
+```
+  def index
+    @products = Product.order(:title)
+    fresh_when etag: @products
+  end
+end
+```
