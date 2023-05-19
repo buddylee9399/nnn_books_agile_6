@@ -132,4 +132,37 @@ Product.create!(title: 'Programming Crystal',
 ```
 - copied over the images to the assets/images
 - updated the products/index file
-- 
+- cool tricks
+- a way to add a class to every other line with 'cycle' and strip_tags to take the html tags out
+
+```
+      <tr class="<%= cycle('list_line_odd', 'list_line_even') %>">
+
+        <td class="image">
+          <%= image_tag(product.image_url, class: 'list_image') %>
+        </td>
+
+        <td class="description">
+          <h1><%= product.title %></h1>
+          <p>
+            <%= truncate(strip_tags(product.description),
+                         length: 80) %>
+          </p>
+        </td>
+```
+
+# Chapter 7
+## Task B: Validation and Unit Testing
+- added validations
+```
+  validates :title, :description, :image_url, presence: true
+# 
+  validates :title, uniqueness: true
+  validates :image_url, allow_blank: true, format: {
+    with:    %r{\.(gif|jpg|png)\z}i,
+    message: 'must be a URL for GIF, JPG or PNG image.'
+  }
+  validates :title, length: {minimum: 10}
+  validates :price, numericality: { greater_than_or_equal_to: 0.01 }
+
+```
