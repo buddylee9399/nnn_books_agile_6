@@ -131,4 +131,5 @@ Product.create!(title: 'Programming Crystal',
 </main>
 ```
 - copied over the images to the assets/images
+- updated the products/index file
 - 
