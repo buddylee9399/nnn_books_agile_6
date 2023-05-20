@@ -210,3 +210,121 @@ root 'store#index', as: 'store_index'
   end
 end
 ```
+
+
+# CHAPTER 9
+## Task D: Cart Creation
+- rails generate scaffold Cart
+- rails db:migrate
+- create the file: app/controllers/concerns/current_cart.rb
+
+```
+module CurrentCart
+
+  private
+
+    def set_cart 
+      @cart = Cart.find(session[:cart_id])
+    rescue ActiveRecord::RecordNotFound
+      @cart = Cart.create
+      session[:cart_id] = @cart.id
+    end
+end
+
+```
+- rails generate scaffold LineItem product:references cart:belongs_to
+- rails db:migrate
+- update cartb.rb
+```
+class Cart < ApplicationRecord
+  has_many :line_items, dependent: :destroy
+end
+
+```
+
+- update product.rb
+```
+class Product < ApplicationRecord
+  has_many :line_items
+  before_destroy :ensure_not_referenced_by_any_line_item
+  
+....
+
+  private
+
+    # ensure that there are no line items referencing this product
+    def ensure_not_referenced_by_any_line_item
+      unless line_items.empty?
+        errors.add(:base, 'Line Items present')
+        throw :abort
+      end
+    end
+end
+```
+- add the button in store index
+```
+  <div class="price">
+    <%= number_to_currency(product.price) %>
+    <%= button_to 'Add to Cart', line_items_path(product_id: product), class: 'add_button' %>
+  </div>
+```
+- update the store.scss
+- update hte line items controller
+```
+class LineItemsController < ApplicationController
+  include CurrentCart
+  before_action :set_cart, only: [:create]
+  before_action :set_line_item, only: [:show, :edit, :update, :destroy]
+
+  def create
+    product = Product.find(params[:product_id])
+    @line_item = @cart.line_items.build(product: product)
+
+    respond_to do |format|
+      if @line_item.save
+        format.html { redirect_to @line_item.cart,
+          notice: 'Line item was successfully created.' }
+        format.json { render :show,
+          status: :created, location: @line_item }
+      else
+        format.html { render :new }
+        format.json { render json: @line_item.errors,
+          status: :unprocessable_entity }
+      end
+    end
+  end
+```
+- update the carts/show
+```
+<% if notice %>
+  <aside id="notice"><%= notice %></aside>
+<% end %>
+
+<h2>Your Pragmatic Cart</h2>
+<ul>    
+  <% @cart.line_items.each do |item| %>
+    <li><%= item.product.title %></li>
+  <% end %>
+</ul>
+```
+- update app.scss
+- I did the Playtime
+```
+Here’s some stuff to try on your own:
+• Add a new variable to the session to record how many times the user has accessed the store controller’s index action. Note that the first time this page is accessed, your count won’t be in the session. You can test for this with code like this:
+
+****added it to the store controller index****
+
+if session[:counter].nil? ...
+If the session variable isn’t there, you need to initialize it. Then you’ll be able to increment it.
+
+****added it to the store/index view****
+• Pass this counter to your template, and display it at the top of the catalog
+page. Hint: the pluralize helper (definition on page 400) might be useful for forming the message you display.
+
+****added it to the line items controller create****
+• Reset the counter to zero whenever the user adds something to the cart.
+
+****updated the store/index view****
+• Change the template to display the counter only if the count is greater than five.
+```

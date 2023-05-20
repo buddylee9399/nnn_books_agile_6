@@ -25,6 +25,9 @@
         </ul>
       </nav>    
       <main class='<%= controller.controller_name %>'>
+        <% if session[:counter] > 5 %>
+          <p>The site has been visited: <%= pluralize(session[:counter], "time") %></p>
+        <% end %>
         <%= yield %>
       </main>
     </section>
